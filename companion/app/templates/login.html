@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="card narrow center">
+  <h1>📖 Our Book Club</h1>
+  <p class="muted">Sign in with your Kavita username and password.</p>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ BASE }}/login" class="stack">
+    <label>Username <input name="username" autocomplete="username" required autofocus></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button>Come in 💕</button>
+  </form>
+</section>
+{% endblock %}

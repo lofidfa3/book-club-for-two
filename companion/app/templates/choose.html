@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="row space wrap"><h1>Pick our book</h1><a class="button ghost" href="{{ BASE }}/add">+ Add a book</a></div>
+{% if flash %}<p class="flash">{{ flash.text }}</p>{% endif %}
+{% if pending %}<p class="muted small">Waiting for Kavita to import “{{ pending }}”… this page refreshes by itself.</p>
+<script>setTimeout(function () { location.reload(); }, 15000);</script>{% endif %}
+{% if not books %}
+  <div class="card"><p>No books in Kavita yet. <a href="{{ BASE }}/add">Find one on Project Gutenberg or upload one</a>, or put an EPUB into the <code>books/</code> folder, then in Kavita go to
+  <em>Settings → Libraries</em>, add a <strong>Book</strong> library pointing at <code>/books</code>, and scan it.</p></div>
+{% endif %}
+<div class="grid">
+  {% for b in books %}
+  <form method="post" action="{{ BASE }}/choose" class="card book {% if b.id == current %}current{% endif %}">
+    <img src="/api/Image/series-cover?seriesId={{ b.id }}&apiKey={{ me.api_key }}" alt="" loading="lazy">
+    <div>
+      <h3>{{ b.name }}</h3>
+      <p class="muted">{{ b.pages }} pages</p>
+      <input type="hidden" name="series_id" value="{{ b.id }}">
+      {% if b.id == current %}<span class="pill">reading now</span>
+      {% else %}<button>Read this together</button>{% endif %}
+      <a href="{{ BASE }}/read/{{ b.id }}">read</a> · <a href="{{ BASE }}/book/{{ b.id }}">notes →</a>
+    </div>
+  </form>
+  {% endfor %}
+</div>
+{% endblock %}

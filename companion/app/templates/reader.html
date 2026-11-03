@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="white">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>{{ series.name }}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+  <link rel="stylesheet" href="{{ BASE }}/static/reader.css">
+</head>
+<body>
+<div id="app" class="chrome-visible">
+
+  <header class="chrome top">
+    <div class="left">
+      <a class="icon-btn" href="{{ BASE }}/book/{{ series.id }}" title="Back to the club" aria-label="Back to the club">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <button class="icon-btn" id="btn-toc" title="Contents (C)" aria-label="Contents">
+        <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r=".6"/><circle cx="4" cy="12" r=".6"/><circle cx="4" cy="18" r=".6"/></svg></button>
+    </div>
+    <div class="title"><span id="book-title">{{ series.name }}</span></div>
+    <div class="right">
+      <button class="icon-btn text-btn" id="btn-type" title="Appearance (A)" aria-label="Appearance"><span class="aa">A<small>A</small></span></button>
+      <button class="icon-btn" id="btn-notes" title="Our notes (N)" aria-label="Our notes">
+        <svg viewBox="0 0 24 24"><path d="M5 5h14v10H10l-4 4v-4H5z"/></svg><span class="badge" id="notes-badge" hidden></span></button>
+    </div>
+  </header>
+
+  <main id="stage">
+    <button class="turn prev" id="prev" aria-label="Previous page"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div id="viewer" aria-live="polite"></div>
+    <button class="turn next" id="next" aria-label="Next page"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <div id="loading"><div class="spinner"></div><p>Opening the book…</p></div>
+    <div id="end-card" hidden>
+      <p class="end-title">The End</p>
+      <p id="end-text"></p>
+      <a id="end-next" class="pill-btn" hidden>Continue to the next part →</a>
+      <a class="pill-btn ghost" href="{{ BASE }}/book/{{ series.id }}">Talk about it 💬</a>
+    </div>
+  </main>
+
+  <footer class="chrome bottom">
+    <span id="chapter-name"></span>
+    <span id="time-left"></span>
+    <span id="percent"></span>
+    <div class="track"><div id="track-fill"></div></div>
+  </footer>
+
+  <!-- Contents -->
+  <aside class="drawer left" id="toc" aria-label="Contents and highlights" hidden>
+    <div class="drawer-head">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-contents" class="on" aria-selected="true">Contents</button>
+        <button role="tab" id="tab-highlights" aria-selected="false">Highlights <span id="hl-count"></span></button>
+      </div>
+      <button class="icon-btn close" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <nav id="toc-list"></nav>
+    <div id="hl-list" hidden></div>
+  </aside>
+
+  <!-- Notes -->
+  <aside class="drawer right" id="notes" aria-label="Our notes" hidden>
+    <div class="drawer-head"><h2>Our notes</h2><button class="icon-btn close" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="muted" id="notes-section"></p>
+    <form id="note-form">
+      <textarea id="note-body" rows="3" placeholder="What are you thinking? Your partner sees it once they've read this far." required></textarea>
+      <button class="pill-btn">Leave a note</button>
+    </form>
+    <div id="notes-list"></div>
+  </aside>
+
+  <!-- Appearance -->
+  <div class="popover" id="type" role="dialog" aria-label="Appearance" hidden>
+    <div class="size-row">
+      <button id="size-down" aria-label="Smaller text"><span style="font-size:14px">A</span></button>
+      <button id="size-up" aria-label="Larger text"><span style="font-size:22px">A</span></button>
+    </div>
+    <div class="themes" role="radiogroup" aria-label="Theme">
+      <button data-theme="white" title="White"></button>
+      <button data-theme="sepia" title="Sepia"></button>
+      <button data-theme="gray" title="Gray"></button>
+      <button data-theme="night" title="Night"></button>
+    </div>
+    <div class="fonts" role="radiogroup" aria-label="Font">
+      <button data-font="original">Original</button>
+      <button data-font="literata" style="font-family:Literata,Georgia,serif">Literata</button>
+      <button data-font="iowan" style="font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif">Iowan</button>
+      <button data-font="charter" style="font-family:Charter,'Bitstream Charter','Sitka Text',Cambria,serif">Charter</button>
+      <button data-font="georgia" style="font-family:Georgia,serif">Georgia</button>
+      <button data-font="sans" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif">San Francisco</button>
+    </div>
+    <div class="opt-row">
+      <span>Line spacing</span>
+      <div class="seg" data-pref="spacing"><button data-v="1.4">Tight</button><button data-v="1.6">Normal</button><button data-v="1.85">Airy</button></div>
+    </div>
+    <div class="opt-row">
+      <span>Justify text</span>
+      <div class="seg" data-pref="justify"><button data-v="1">On</button><button data-v="0">Off</button></div>
+    </div>
+    <div class="opt-row" id="layout-row">
+      <span>Pages</span>
+      <div class="seg" data-pref="spread"><button data-v="auto">Two</button><button data-v="none">One</button></div>
+    </div>
+  </div>
+
+  <!-- appears on a new text selection -->
+  <div class="hl-pop" id="sel-pop" hidden>
+    <div class="swatches">
+      <button data-color="yellow" aria-label="Yellow highlight"></button><button data-color="green" aria-label="Green highlight"></button><button data-color="blue" aria-label="Blue highlight"></button><button data-color="pink" aria-label="Pink highlight"></button><button data-color="purple" aria-label="Purple highlight"></button>
+    </div>
+    <span class="sep"></span><button class="txt" id="sel-note">Note</button>
+  </div>
+  <!-- appears when tapping an existing highlight -->
+  <div class="hl-pop" id="mark-pop" hidden>
+    <div class="swatches">
+      <button data-color="yellow" aria-label="Yellow"></button><button data-color="green" aria-label="Green"></button><button data-color="blue" aria-label="Blue"></button><button data-color="pink" aria-label="Pink"></button><button data-color="purple" aria-label="Purple"></button>
+    </div>
+    <span class="sep"></span><button class="txt" id="mark-note">Note</button><button class="txt" id="mark-remove">Remove</button>
+  </div>
+</div>
+
+<script id="boot" type="application/json">{{ boot|tojson }}</script>
+<script src="{{ BASE }}/static/vendor/jszip.min.js"></script>
+<script src="{{ BASE }}/static/vendor/epub.min.js"></script>
+<script src="{{ BASE }}/static/love.js"></script>
+<script src="{{ BASE }}/static/reader.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="hero card">
+  <img class="cover" src="/api/Image/series-cover?seriesId={{ series.id }}&apiKey={{ me.api_key }}" alt="">
+  <div class="grow">
+    <p class="muted small">We're reading</p>
+    <h1>{{ series.name }}</h1>
+    {% for p in progs %}
+    <div class="reader">
+      <div class="row"><strong>{{ p.reader.display_name }}{% if p.reader.id == me.id %} (you){% endif %}</strong>
+        <span class="muted">{{ p.label }} · {{ p.pct }}%</span></div>
+      <div class="bar"><span style="width: {{ p.pct }}%"></span></div>
+    </div>
+    {% endfor %}
+    {% if not partner %}
+      <p class="hint">Waiting for your partner to join — they just sign in here with their own Kavita account.</p>
+    {% endif %}
+    <div class="row gap">
+      <a class="button" href="{{ BASE }}/read/{{ series.id }}">Continue reading 📖</a>
+      <a class="button ghost" href="{{ BASE }}/book/{{ series.id }}">Notes & schedule</a>
+    </div>
+  </div>
+</section>
+
+{% if next_ms %}
+<section class="card">
+  <h2>Next goal: {{ next_ms.m.label }} <span class="muted">by {{ next_ms.m.due_date }}</span></h2>
+  <ul class="status">
+  {% for r, cls, text in next_ms.status %}<li class="{{ cls }}">{{ r.display_name }} — {{ text }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Lately</h2>
+  {% if not activity %}<p class="muted">No notes yet. Leave the first one from the <a href="{{ BASE }}/book/{{ series.id }}">notes page</a>.</p>{% endif %}
+  <ul class="feed">
+  {% for a in activity %}
+    <li>
+      {% if a.open %}
+        <strong>{{ a.r.who }}</strong> {{ 'noted' if a.r.kind == 'note' else 'replied' }} at <em>{{ a.r.label }}</em>:
+        <a href="{{ BASE }}/book/{{ series.id }}#n{{ a.r.note_id }}">“{{ a.r.body|truncate(120) }}”</a>
+      {% else %}
+        🔒 <strong>{{ a.r.who }}</strong> left a {{ a.r.kind }} at <em>{{ a.r.label }}</em> — keep reading to unlock it
+      {% endif %}
+      <span class="muted small">{{ a.r.created[:16] }}</span>
+    </li>
+  {% endfor %}
+  </ul>
+</section>
+{% endblock %}

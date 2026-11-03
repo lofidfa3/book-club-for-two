@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Love notes 💌</h1>
+<p class="muted">While {{ partner.display_name if partner else 'your partner' }} reads in Kavita, one of these pops up as they turn pages.
+  {% if not partner %}(They'll see them once they've joined.){% endif %}</p>
+
+<section class="card">
+  <h2>Write one for {{ partner.display_name if partner else 'them' }}</h2>
+  <form method="post" action="{{ BASE }}/love" class="row gap">
+    <input name="body" maxlength="200" placeholder="kiss to your head 💋" required class="grow"><button>Add</button>
+  </form>
+  <ul class="love-list">
+    {% for m in mine %}
+    <li><span>{{ m.body }}</span>
+      <form method="post" action="{{ BASE }}/love/{{ m.id }}/delete"><button class="link">remove</button></form></li>
+    {% else %}
+    <li class="muted">You haven't written any yet.</li>
+    {% endfor %}
+  </ul>
+  <p class="muted small">Your notes are mixed in with {{ '{:,}'.format(total) }} built-in little notes, signed with your name.
+    No note repeats until every one has been shown. A few of the built-in ones:</p>
+  <p>{% for d in defaults %}<span class="pill">{{ d.body }}</span>{% endfor %}</p>
+</section>
+
+<section class="card">
+  <h2>What I see</h2>
+  <form method="post" action="{{ BASE }}/settings" class="row gap wrap">
+    <label>My name <input name="display_name" value="{{ me.display_name }}" maxlength="40"></label>
+    <label>Show me a love note every
+      <select name="love_every">
+        {% for n, t in [(1,'page'),(2,'2 pages'),(3,'3 pages'),(5,'5 pages'),(10,'10 pages'),(0,'never')] %}
+        <option value="{{ n }}" {% if me.love_every == n %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select></label>
+    <button>Save</button>
+  </form>
+  <p class="muted small">You've seen {{ '{:,}'.format(seen) }} of the notes in this round.</p>
+  <button class="ghost" type="button" onclick="window.bookclubLove && window.bookclubLove.show('kiss to your head 💋', 'preview')">Preview a love note</button>
+</section>
+<script src="{{ BASE }}/static/love.js" defer></script>
+{% endblock %}

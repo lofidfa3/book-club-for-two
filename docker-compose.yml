@@ -1,0 +1,37 @@
+name: bookclub
+
+services:
+  kavita:
+    image: jvmilazz0/kavita:0.9.1
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./kavita-config:/kavita/config
+      - ./books:/books
+    # Not published directly: everything goes through nginx so the love notes get injected.
+
+  companion:
+    build: ./companion
+    restart: unless-stopped
+    environment:
+      - KAVITA_URL=http://kavita:5000
+      - SECRET_KEY=${SECRET_KEY:?set SECRET_KEY in .env}
+      - DATA_DIR=/data
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./data:/data
+      - ./books:/books
+    depends_on:
+      - kavita
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - kavita
+      - companion

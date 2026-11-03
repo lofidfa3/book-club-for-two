@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ series.name }} · Our Book Club{% endblock %}
+{% block body %}
+<div class="row space">
+  <h1>{{ series.name }}</h1>
+  <div class="row gap"><a class="button" href="{{ BASE }}/read/{{ series.id }}">Read 📖</a>
+    <a class="muted small" href="{{ reader_url }}">or open in Kavita ↗</a></div>
+</div>
+<div class="duo">
+  {% for p in progs %}
+  <div class="card reader">
+    <div class="row"><strong>{{ p.reader.display_name }}</strong><span class="muted">{{ p.pct }}%</span></div>
+    <div class="bar"><span style="width: {{ p.pct }}%"></span></div>
+    <p class="muted small">at {{ p.label }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+<section class="card" id="schedule">
+  <h2>Reading schedule</h2>
+  {% if milestones %}
+  <table class="sched">
+    <tr><th>Reach</th><th>By</th>{% for p in progs %}<th>{{ p.reader.display_name }}</th>{% endfor %}<th></th></tr>
+    {% for x in milestones %}
+    <tr>
+      <td>end of {{ x.m.label }}</td><td>{{ x.m.due_date }}</td>
+      {% for r, cls, text in x.status %}<td class="{{ cls }}">{{ text }}</td>{% endfor %}
+      <td><form method="post" action="{{ BASE }}/milestones/{{ x.m.id }}/delete"><button class="link">remove</button></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">No goals yet.</p>{% endif %}
+  <form method="post" action="{{ BASE }}/book/{{ series.id }}/milestones" class="row gap wrap">
+    <label>Finish <select name="position">
+      {% for s in secs %}<option value="{{ s.position }}">{{ s.label }}</option>{% endfor %}
+    </select></label>
+    <label>by <input type="date" name="due_date" value="{{ today }}" required></label>
+    <button>Add goal</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Leave a note</h2>
+  <form method="post" action="{{ BASE }}/book/{{ series.id }}/notes" class="stack">
+    <label>About <select name="position">
+      {% for s in secs %}<option value="{{ s.position }}" {% if s.position == default_pos %}selected{% endif %}>{{ s.label }}</option>{% endfor %}
+    </select></label>
+    <textarea name="body" rows="3" placeholder="What did you think? Your partner sees it once they've read past this part." required></textarea>
+    <button>Post note</button>
+  </form>
+</section>
+
+<section>
+  <h2>Notes</h2>
+  {% if not groups %}<p class="muted">Nothing yet.</p>{% endif %}
+  {% for g in groups %}
+  <div class="card section" id="s{{ g.position }}">
+    <h3>{{ g.label }}</h3>
+    {% for item in g.open %}{% set n = item.n %}
+    <article class="note" id="n{{ n.id }}">
+      <p class="who"><strong>{{ n.who }}</strong> <span class="muted small">{{ n.created[:16] }}</span>
+        {% if n.author_id == me.id %}
+        <form method="post" action="{{ BASE }}/notes/{{ n.id }}/delete" class="inline"
+              onsubmit="return this.dataset.ok || (this.dataset.ok = 1, this.querySelector('button').textContent = 'click again to delete', false)">
+          <button class="link">delete</button></form>{% endif %}</p>
+      <p class="body">{{ n.body }}</p>
+      {% for r in item.replies %}
+      <div class="reply"><strong>{{ r.who }}</strong> <span class="muted small">{{ r.created[:16] }}</span><p class="body">{{ r.body }}</p></div>
+      {% endfor %}
+      <form method="post" action="{{ BASE }}/notes/{{ n.id }}/reply" class="row gap">
+        <input name="body" placeholder="Reply…" required><button>Reply</button>
+      </form>
+    </article>
+    {% endfor %}
+    {% if g.locked %}
+    <p class="locked">🔒 {{ g.locked }} note{{ 's' if g.locked > 1 }} waiting for you — they unlock once you've read past this part.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

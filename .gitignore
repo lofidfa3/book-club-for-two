@@ -1,0 +1,6 @@
+.env
+data/
+kavita-config/
+books/
+__pycache__/
+*.pyc

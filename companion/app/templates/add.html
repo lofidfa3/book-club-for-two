@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Add a book · Our Book Club{% endblock %}
+{% block body %}
+<h1>Add a book</h1>
+{% if error %}<p class="flash error-box">{{ error }}</p>{% endif %}
+
+<section class="card">
+  <h2>Search Project Gutenberg</h2>
+  <p class="muted small">Over 70,000 free classics whose copyright has run out. They're added straight into Kavita.</p>
+  <form method="get" action="{{ BASE }}/add" class="row gap">
+    <input name="q" value="{{ q }}" placeholder="Title or author — e.g. Austen, Little Women, Sherlock" class="grow" autofocus>
+    <button>Search</button>
+  </form>
+</section>
+
+{% if results %}
+  <h2>{% if q %}Results for “{{ q }}”{% else %}Most popular right now{% endif %}</h2>
+  {% if not results.results %}<p class="muted">Nothing found. Try just the author's last name.</p>{% endif %}
+  <div class="grid">
+    {% for b in results.results %}
+    <form method="post" action="{{ BASE }}/add/gutenberg" class="card book">
+      <img src="{{ b.cover }}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=nocover>📖</div>'">
+      <div>
+        <h3>{{ b.title|truncate(80) }}</h3>
+        <p class="muted small">{{ b.author }}</p>
+        <input type="hidden" name="book_id" value="{{ b.id }}"><input type="hidden" name="q" value="{{ q }}">
+        <button onclick="this.textContent = 'Adding…'; this.disabled = true; this.form.submit()">Add to our library</button>
+      </div>
+    </form>
+    {% endfor %}
+  </div>
+  <div class="row gap">
+    {% if page > 1 %}<a class="button ghost" href="{{ BASE }}/add?q={{ q|urlencode }}&page={{ page - 1 }}">← Previous</a>{% endif %}
+    {% if results.next %}<a class="button ghost" href="{{ BASE }}/add?q={{ q|urlencode }}&page={{ page + 1 }}">More →</a>{% endif %}
+  </div>
+{% endif %}
+
+<section class="card" id="upload" style="margin-top:1.5rem">
+  <h2>Upload your own EPUB</h2>
+  <p class="muted small">Any DRM-free EPUB you own works: from publishers, Humble Bundle, Kobo books marked "DRM-free", Standard Ebooks, and so on.</p>
+  <form method="post" action="{{ BASE }}/add/upload" enctype="multipart/form-data" class="row gap wrap">
+    <input type="file" name="file" accept=".epub,application/epub+zip" required>
+    <button onclick="if (this.form.reportValidity()) { this.textContent = 'Uploading…'; this.disabled = true; this.form.submit() }">Upload</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Why can't I add new bestsellers?</h2>
+  <p>Books you borrow from Libby/OverDrive, buy on Kindle or Apple Books, or borrow from Open Library come locked with
+     <strong>DRM</strong>. Only the store's own app can open them, so Kavita can't, and there's no API that hands out the files.</p>
+  <ul>
+    <li><strong>Buy DRM-free</strong> and upload it here: many publishers (Tor, Baen, Verso and others), Humble Bundle, Smashwords, itch.io,
+        and Kobo books whose page says "DRM-free".</li>
+    <li><strong>Reading a Libby book together anyway?</strong> You can each read it in Libby. The club tracks Kavita books only, so for that book
+        progress and notes would have to be by hand.</li>
+  </ul>
+</section>
+{% endblock %}
